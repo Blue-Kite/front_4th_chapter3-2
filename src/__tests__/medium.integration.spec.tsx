@@ -13,11 +13,14 @@ import App from '../App';
 import { server } from '../setupTests';
 import { Event } from '../types';
 
-// ! Hard 여기 제공 안함
 const setup = (element: ReactElement) => {
+  const rendered = render(<ChakraProvider>{element}</ChakraProvider>);
   const user = userEvent.setup();
 
-  return { ...render(<ChakraProvider>{element}</ChakraProvider>), user }; // ? Med: 왜 ChakraProvider로 감싸는지 물어보자
+  return {
+    ...rendered,
+    user,
+  };
 };
 
 // ! Hard 여기 제공 안함

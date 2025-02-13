@@ -23,7 +23,6 @@ const setup = (element: ReactElement) => {
   };
 };
 
-// ! Hard 여기 제공 안함
 const saveSchedule = async (
   user: UserEvent,
   form: Omit<Event, 'id' | 'notificationTime' | 'repeat'>

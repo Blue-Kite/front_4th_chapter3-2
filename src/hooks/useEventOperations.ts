@@ -36,11 +36,22 @@ export const useEventOperations = (editing: boolean, onSave?: () => void) => {
           body: JSON.stringify(eventData),
         });
       } else {
-        response = await fetch('/api/events', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(eventData),
-        });
+        const isRepeating = eventData.repeat.type !== 'none';
+        console.log('hello');
+        if (isRepeating) {
+          console.log('here');
+          response = await fetch('/api/events-list', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ events: [eventData] }),
+          });
+        } else {
+          response = await fetch('/api/events', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(eventData),
+          });
+        }
       }
 
       if (!response.ok) {

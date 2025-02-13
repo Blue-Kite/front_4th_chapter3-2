@@ -184,3 +184,32 @@ it("네트워크 오류 시 '일정 삭제 실패'라는 텍스트가 노출되�
 
   expect(result.current.events).toHaveLength(1);
 });
+
+describe('반복 일정 처리', () => {
+  it('반복 일정 생성 시 반복 유형/반복 간격/종료 날짜가 올바르게 저장된다', async () => {
+    setupMockHandlerCreation();
+
+    const { result } = renderHook(() => useEventOperations(false));
+
+    const newEvent: Event = {
+      id: '1',
+      title: '새 회의',
+      date: '2024-10-15',
+      startTime: '14:00',
+      endTime: '15:00',
+      description: '프로젝트 진행 상황 논의',
+      location: '회의실 A',
+      category: '업무',
+      repeat: { type: 'weekly', interval: 1, endDate: '2025-02-13' },
+      notificationTime: 10,
+    };
+
+    await act(async () => {
+      await result.current.saveEvent(newEvent);
+    });
+
+    expect(result.current.events).toEqual([
+      { ...newEvent, repeat: { type: 'weekly', interval: 1, id: '1', endDate: '2025-02-13' } },
+    ]);
+  });
+});

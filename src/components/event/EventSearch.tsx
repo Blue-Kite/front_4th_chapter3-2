@@ -30,6 +30,7 @@ export const EventSearch = ({
   onEdit,
   onDelete,
 }: EventSearchProps) => {
+  console.log(filteredEvents);
   return (
     <VStack data-testid="event-list" w="500px" h="full" overflowY="auto">
       <FormControl>

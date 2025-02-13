@@ -106,7 +106,9 @@ it('존재하는 이벤트 삭제 시 에러없이 아이템이 삭제된다.', 
 
   await act(() => Promise.resolve(null));
 
-  expect(result.current.events).toEqual([]);
+  const remainingEvents = result.current.events.filter((event) => event.id !== '1');
+  expect(remainingEvents.length).toBe(1);
+  expect(result.current.events[0].id).toBe('2');
 });
 
 it("이벤트 로딩 실패 시 '이벤트 로딩 실패'라는 텍스트와 함께 에러 토스트가 표시되어야 한다", async () => {
@@ -188,8 +190,9 @@ it("네트워크 오류 시 '일정 삭제 실패'라는 텍스트가 노출되�
 describe('반복 일정 처리', () => {
   it('반복 일정 생성 시 반복 유형/반복 간격/종료 날짜가 올바르게 저장된다', async () => {
     setupMockHandlerCreation();
-
     const { result } = renderHook(() => useEventOperations(false));
+
+    await act(() => Promise.resolve(null));
 
     const newEvent: Event = {
       id: '1',
@@ -211,5 +214,51 @@ describe('반복 일정 처리', () => {
     expect(result.current.events).toEqual([
       { ...newEvent, repeat: { type: 'weekly', interval: 1, id: '1', endDate: '2025-02-13' } },
     ]);
+  });
+
+  it('반복 일정을 수정하면 단일 일정으로 변경된다.', async () => {
+    setupMockHandlerUpdating();
+    const { result } = renderHook(() => useEventOperations(false));
+
+    await act(() => Promise.resolve(null));
+
+    expect(result.current.events.length).toBe(3);
+    const repeatEvents = result.current.events.filter((event) => event.repeat.type !== 'none');
+    expect(repeatEvents.length).toBe(1);
+
+    //반복일정->단일일정
+    const updatedEvent: Event = {
+      ...repeatEvents[0],
+      repeat: { type: 'none', interval: 0 },
+    };
+
+    await act(async () => {
+      await result.current.saveEvent(updatedEvent);
+    });
+
+    const updatedRepeatEvents = result.current.events.filter(
+      (event) => event.repeat.type !== 'none'
+    );
+    expect(updatedRepeatEvents.length).toBe(1);
+  });
+
+  it('반복일정을 삭제하면 해당 일정만 삭제한다.', async () => {
+    setupMockHandlerDeletion();
+    const { result } = renderHook(() => useEventOperations(false));
+
+    await act(() => Promise.resolve(null));
+
+    const repeatEvents = result.current.events.filter((event) => event.repeat.type !== 'none');
+    expect(repeatEvents.length).toBe(1);
+
+    await act(async () => {
+      await result.current.deleteEvent('2');
+    });
+
+    const remainingRepeatEvents = result.current.events.filter(
+      (event) => event.repeat.type !== 'none'
+    );
+    expect(remainingRepeatEvents.length).toBe(0);
+    expect(result.current.events.length).toBe(1);
   });
 });

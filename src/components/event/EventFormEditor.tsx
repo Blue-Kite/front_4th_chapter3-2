@@ -13,6 +13,7 @@ import {
 
 import { CATEGORIES, NOTIFICATIONS_OPTIONS } from '../../constants';
 import { Event, RepeatType } from '../../types';
+import { RepeatScheduleForm } from './RepeatScheduleForm';
 
 interface FormData {
   title: string;
@@ -173,39 +174,12 @@ export const EventFormEditor = ({
       </FormControl>
 
       {formData.isRepeating && (
-        <VStack width="100%">
-          <FormControl>
-            <FormLabel>반복 유형</FormLabel>
-            <Select
-              value={formData.repeat.type}
-              onChange={(e) => handlers.onRepeatTypeChange(e.target.value as RepeatType)}
-            >
-              <option value="daily">매일</option>
-              <option value="weekly">매주</option>
-              <option value="monthly">매월</option>
-              <option value="yearly">매년</option>
-            </Select>
-          </FormControl>
-          <HStack width="100%">
-            <FormControl>
-              <FormLabel>반복 간격</FormLabel>
-              <Input
-                type="number"
-                value={formData.repeat.interval}
-                onChange={(e) => handlers.onRepeatIntervalChange(Number(e.target.value))}
-                min={1}
-              />
-            </FormControl>
-            <FormControl>
-              <FormLabel>반복 종료일</FormLabel>
-              <Input
-                type="date"
-                value={formData.repeat.endDate}
-                onChange={(e) => handlers.onRepeatEndDateChange(e.target.value)}
-              />
-            </FormControl>
-          </HStack>
-        </VStack>
+        <RepeatScheduleForm
+          repeat={formData.repeat}
+          onRepeatTypeChange={handlers.onRepeatTypeChange}
+          onRepeatIntervalChange={handlers.onRepeatIntervalChange}
+          onRepeatEndDateChange={handlers.onRepeatEndDateChange}
+        />
       )}
 
       <Button data-testid="event-submit-button" onClick={onSubmit} colorScheme="blue">

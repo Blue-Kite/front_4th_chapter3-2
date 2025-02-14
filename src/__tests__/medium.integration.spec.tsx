@@ -25,9 +25,9 @@ const setup = (element: ReactElement) => {
 
 const saveSchedule = async (
   user: UserEvent,
-  form: Omit<Event, 'id' | 'notificationTime' | 'repeat'>
+  form: Omit<Event, 'id' | 'notificationTime' | 'repeat'> & Partial<Pick<Event, 'repeat'>>
 ) => {
-  const { title, date, startTime, endTime, location, description, category } = form;
+  const { title, date, startTime, endTime, location, description, category, repeat } = form;
 
   await user.click(screen.getAllByText('일정 추가')[0]);
 
@@ -38,6 +38,14 @@ const saveSchedule = async (
   await user.type(screen.getByLabelText('설명'), description);
   await user.type(screen.getByLabelText('위치'), location);
   await user.selectOptions(screen.getByLabelText('카테고리'), category);
+
+  if (repeat) {
+    await user.selectOptions(screen.getByLabelText('반복 유형'), repeat.type ?? 'none');
+    await user.clear(screen.getByLabelText('반복 간격'));
+    await user.type(screen.getByLabelText('반복 간격'), repeat.interval.toString() ?? '');
+    await user.clear(screen.getByLabelText('반복 종료일'));
+    await user.type(screen.getByLabelText('반복 종료일'), repeat.endDate ?? '');
+  }
 
   await user.click(screen.getByTestId('event-submit-button'));
 };
@@ -98,6 +106,81 @@ describe('일정 CRUD 및 기본 기능', () => {
     await user.click(allDeleteButton[0]);
 
     expect(eventList.queryByText('삭제할 이벤트')).not.toBeInTheDocument();
+  });
+
+  it('반복 일정을 추가하고 화면에 조회할 수 있다.', async () => {
+    setupMockHandlerCreation();
+
+    const { user } = setup(<App />);
+
+    await saveSchedule(user, {
+      title: '새 회의',
+      date: '2024-10-15',
+      startTime: '14:00',
+      endTime: '15:00',
+      description: '프로젝트 진행 상황 논의',
+      location: '회의실 A',
+      category: '업무',
+      repeat: {
+        type: 'daily',
+        interval: 1,
+        endDate: '2024-10-17',
+      },
+    });
+
+    const eventList = within(screen.getByTestId('event-list'));
+    expect(eventList.getByText('새 회의')).toBeInTheDocument();
+    expect(eventList.getByText('2024-10-15')).toBeInTheDocument();
+    expect(eventList.getByText('14:00 - 15:00')).toBeInTheDocument();
+    expect(eventList.getByText('프로젝트 진행 상황 논의')).toBeInTheDocument();
+    expect(eventList.getByText('회의실 A')).toBeInTheDocument();
+    expect(eventList.getByText('카테고리: 업무')).toBeInTheDocument();
+    expect(eventList.getAllByText(/반복:\s*1/)).toHaveLength(1);
+    expect(eventList.getAllByText(/일\s*마다/)).toHaveLength(1);
+    expect(eventList.getAllByText(/(종료:\s*2024-10-17)/)).toHaveLength(1);
+  });
+
+  it('반복 일정을 수정할 수 있다.', async () => {
+    setupMockHandlerUpdating();
+    const { user } = setup(<App />);
+    await act(async () => null);
+
+    const eventList = within(screen.getByTestId('event-list'));
+    const repeatTexts = await eventList.getAllByText(/반복:\s*/);
+    expect(repeatTexts.length).toBe(1);
+
+    const editButtons = await eventList.findAllByRole('button', { name: /Edit event/ });
+    await user.click(editButtons[2]);
+
+    await user.clear(screen.getByLabelText('제목'));
+    await user.type(screen.getByLabelText('제목'), '수정된 반복 일정');
+    await user.click(screen.getByTestId('event-submit-button'));
+
+    const updatedEventList = within(screen.getByTestId('event-list'));
+    expect(updatedEventList.getByText('수정된 반복 일정')).toBeInTheDocument();
+    expect(updatedEventList.getAllByText(/반복:\s*/)).toHaveLength(1);
+  });
+
+  it('반복 일정을 단일 일정으로 수정할 수 있다', async () => {
+    setupMockHandlerUpdating();
+    const { user } = setup(<App />);
+
+    await act(async () => null);
+
+    const eventList = within(screen.getByTestId('event-list'));
+
+    const repeatTexts = await eventList.getAllByText(/반복:\s*/);
+    expect(repeatTexts.length).toBe(1);
+
+    const editButtons = await eventList.findAllByRole('button', { name: /Edit event/ });
+    await user.click(editButtons[2]);
+
+    const repeatCheckbox = screen.getByLabelText('반복 일정');
+    await user.click(repeatCheckbox);
+    await user.click(screen.getByTestId('event-submit-button'));
+
+    const updatedEventList = within(screen.getByTestId('event-list'));
+    expect(updatedEventList.queryAllByText(/반복:\s*/)).toHaveLength(0);
   });
 });
 

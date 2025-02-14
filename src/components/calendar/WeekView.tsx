@@ -1,4 +1,4 @@
-import { BellIcon } from '@chakra-ui/icons';
+import { BellIcon, RepeatIcon } from '@chakra-ui/icons';
 import {
   Heading,
   Table,
@@ -59,6 +59,7 @@ export const WeekView = ({ currentDate, events, notifiedEvents }: WeekViewProps)
                         color={isNotified ? 'red.500' : 'inherit'}
                       >
                         <HStack spacing={1}>
+                          {event.repeat.type !== 'none' && <RepeatIcon />}
                           {isNotified && <BellIcon />}
                           <Text fontSize="sm" noOfLines={1}>
                             {event.title}

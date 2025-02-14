@@ -108,7 +108,7 @@ export const setupMockHandlerUpdating = () => {
       });
 
       if (!isUpdated) {
-        return new HttpResponse('Event not found', { status: 404 });
+        return new HttpResponse(null, { status: 404 });
       }
 
       mockEvents = [...newEvents];

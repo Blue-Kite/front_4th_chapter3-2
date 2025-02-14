@@ -25,7 +25,9 @@ export const RepeatScheduleForm = ({
         <FormLabel>반복 유형</FormLabel>
         <Select
           value={repeat.type}
-          onChange={(e) => onRepeatTypeChange(e.target.value as RepeatType)}
+          onChange={(e) => {
+            onRepeatTypeChange(e.target.value as RepeatType);
+          }}
         >
           <option value="daily">매일</option>
           <option value="weekly">매주</option>

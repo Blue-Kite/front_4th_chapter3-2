@@ -11,9 +11,9 @@ import {
   VStack,
 } from '@chakra-ui/react';
 
+import { RepeatScheduleForm } from './RepeatScheduleForm';
 import { CATEGORIES, NOTIFICATIONS_OPTIONS } from '../../constants';
 import { Event, RepeatType } from '../../types';
-import { RepeatScheduleForm } from './RepeatScheduleForm';
 
 interface FormData {
   title: string;
